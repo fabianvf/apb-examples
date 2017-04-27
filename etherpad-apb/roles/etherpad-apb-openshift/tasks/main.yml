@@ -1,0 +1,166 @@
+---
+
+- name: create namespace
+  openshift_v1_project:
+    name: '{{ namespace }}'
+
+- name: mariadb storage volume claim
+  k8s_v1_persistent_volume_claim:
+    name: mariadb-storage
+    namespace: '{{ namespace }}'
+    state: present
+    access_modes:
+      - ReadWriteOnce
+    resources_requests:
+      storage: 1Gi
+
+- name: mariadb logs volume claim
+  k8s_v1_persistent_volume_claim:
+    name: mariadb-logs
+    namespace: '{{ namespace }}'
+    state: present
+    access_modes:
+      - ReadWriteOnce
+    resources_requests:
+      storage: 1Gi
+
+- name: mariadb service 
+  k8s_v1_service:
+    name: mariadb
+    namespace: '{{ namespace }}'
+    state: present
+    labels:
+      app: etherpad-apb
+      service: mariadb
+    selector:
+      app: etherpad-apb
+      service: mariadb
+    ports:
+      - name: port-3306
+        port: 3306
+        target_port: 3306
+
+- name: etherpad service 
+  k8s_v1_service:
+    name: etherpad
+    namespace: '{{ namespace }}'
+    state: present
+    labels:
+      app: etherpad-apb
+      service: etherpad
+    selector:
+      app: etherpad-apb
+      service: etherpad
+    ports:
+      - name: port-9001
+        port: 9001
+        target_port: 9001
+
+- name: create etherpad route
+  openshift_v1_route:
+    name: etherpad
+    namespace: '{{ namespace }}'
+    to_name: etherpad
+    port_target_port: 9001
+
+- name: create mariadb deployment config
+  openshift_v1_deployment_config:
+    name: mariadb
+    namespace: '{{ namespace }}'
+    state: present
+    labels:
+      app: etherpad-apb
+      service: mariadb
+    spec_template_metadata_labels:
+      app: etherpad-apb
+      service: mariadb
+    selector:
+      app: etherpad-apb
+      service: mariadb
+    replicas: 1
+    containers:
+    - env:
+      - name: MYSQL_DATABASE
+        value: '{{ database_name }}'
+      - name: MYSQL_PASSWORD
+        value: '{{ database_password }}'
+      - name: MYSQL_ROOT_PASSWORD
+        value: '{{ root_password }}'
+      - name: MYSQL_USERNAME
+        value: '{{ database_user }}'
+      image: docker.io/mariadb/mariadb:latest
+      image_pull_policy: IfNotPresent
+      name: mariadb
+      security_context: {}
+      volume_mounts:
+      - mount_path: /var/lib/mysql
+        name: mariadb-storage
+      - mount_path: /var/log/mysql
+        name: mariadb-logs
+      working_dir: /
+      command: 
+      - mysqld --innodb-buffer-pool-size=20M
+      ports:
+      - container_port: 3306
+        protocol: TCP
+    dns_policy: ClusterFirst
+    restart_policy: Always
+    termination_grace_period_seconds: 30
+    volumes:
+    - name: mariadb-logs
+      persistent_volume_claim:
+        claim_name: mariadb-logs
+    - name: mariadb-storage
+      persistent_volume_claim:
+        claim_name: mariadb-storage
+    test: false
+    triggers:
+    - type: ConfigChange
+
+- name: create etherpad deployment config
+  openshift_v1_deployment_config:
+    name: etherpad
+    namespace: '{{ namespace }}'
+    state: present
+    labels:
+      app: etherpad-apb
+      service: etherpad
+    spec_template_metadata_labels:
+      app: etherpad-apb
+      service: etherpad
+    selector:
+      app: etherpad-apb
+      service: etherpad
+    replicas: 1
+    containers:
+    - env:
+      - name: ADMIN_PASSWORD
+        value: '{{ application_password }}'
+      - name: DATABASE_HOST
+        value: '{{ database_host }}'
+      - name: DATABASE_NAME
+        value: '{{ database_name }}'
+      - name: DATABASE_PASSWORD
+        value: '{{ database_password }}'
+      - name: DATABASE_USER
+        value: '{{ database_user }}'
+      - name: SESSION_KEY
+        value: '{{ session_key if session_key is defined else (99999 | random
+          | to_uuid) }}'
+      image: docker.io/centos/etherpad:latest
+      image_pull_policy: IfNotPresent
+      name: etherpad-apb
+      security_context: {}
+      command: 
+      - /usr/bin/entrypoint.sh
+      args:
+      - /opt/etherpad-lite/bin/run.sh
+      ports:
+      - container_port: 9001
+        protocol: TCP
+    dns_policy: ClusterFirst
+    restart_policy: Always
+    termination_grace_period_seconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange

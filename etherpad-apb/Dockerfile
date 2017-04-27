@@ -1,0 +1,27 @@
+FROM ansibleplaybookbundle/apb-src-base
+# MAINTAINER {{ $MAINTAINER }}
+
+LABEL "com.redhat.apb.version"="0.1.0"
+LABEL "com.redhat.apb.spec"=\
+"aWQ6IGYzMmRlM2JjLTMyMjUtNDI5YS1iMjNiLWNlZjQ3Y2ExZDI1YgpuYW1lOiBhbnNpYmxlcGxh\
+eWJvb2tidW5kbGUvZXRoZXJwYWQtYXBiCmRlc2NyaXB0aW9uOiBOb3RlIHRha2luZyB3ZWIgYXBw\
+bGljYXRpb24KYmluZGFibGU6IHRydWUKYXN5bmM6ICJvcHRpb25hbCIKcGFyYW1ldGVyczoKICAt\
+IG5hbWU6IHByb2plY3RfbmFtZQogICAgZGVzY3JpcHRpb246IE5hbWVzcGFjZSB0byBkZXBsb3kg\
+Y29udGFpbmVycyB0bwogICAgZGVmYXVsdDogZXRoZXJwYWQKICAtIG5hbWU6IGRhdGFiYXNlX3Vz\
+ZXIKICAgIGRlc2NyaXB0aW9uOiBEYXRhYmFzZSBVc2VyCiAgICBkZWZhdWx0OiBldGhlcnBhZAog\
+IC0gbmFtZTogZGF0YWJhc2VfcGFzc3dvcmQKICAgIGRlc2NyaXB0aW9uOiBEYXRhYmFzZSBQYXNz\
+d29yZAogIC0gbmFtZTogZGF0YWJhc2VfbmFtZQogICAgZGVzY3JpcHRpb246IERhdGFiYXNlIE5h\
+bWUKICAgIGRlZmF1bHQ6IGV0aGVycGFkCiAgLSBuYW1lOiBkYXRhYmFzZV9ob3N0CiAgICBkZXNj\
+cmlwdGlvbjogRGF0YWJhc2Ugc2VydmljZSBob3N0bmFtZS9pcAogICAgZGVmYXVsdDogbWFyaWFk\
+YgogIC0gbmFtZTogcm9vdF9wYXNzd29yZAogICAgZGVzY3JpcHRpb246IHJvb3QgcGFzc3dvcmQg\
+Zm9yIG1hcmlhZGIgY29udGFpbmVyCiAgLSBuYW1lOiBhcHBsaWNhdGlvbl9wYXNzd29yZAogICAg\
+ZGVzY3JpcHRpb246IFBhc3N3b3JkIGZvciBldGhlcnBhZC1saXRlIGFkbWluIGludGVyZmFjZQog\
+IC0gbmFtZTogc2Vzc2lvbl9rZXkKICAgIGRlc2NyaXB0aW9uOiBLZXkgZm9yIHJlY292ZXJpbmcg\
+c2Vzc2lvbi4gV2lsbCBkZWZhdWx0IHRvIHJhbmRvbSBVVUlECiAgICByZXF1aXJlZDogZmFsc2UK"
+
+ADD playbooks /opt/apb/actions
+ADD roles /opt/ansible/roles
+
+RUN useradd -u 1001 -r -g 0 -M -b /opt/apb -s /sbin/nologin -c "apb user" apb
+RUN chown -R 1001:0 /opt/apb
+USER 1001
