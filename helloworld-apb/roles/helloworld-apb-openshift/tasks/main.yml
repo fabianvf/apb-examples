@@ -1,0 +1,62 @@
+---
+
+- name: create namespace
+  openshift_v1_project:
+    name: '{{ namespace }}'
+
+- name: nginx service 
+  k8s_v1_service:
+    name: nginx
+    namespace: '{{ namespace }}'
+    state: present
+    labels:
+      app: helloworld-apb
+      service: nginx
+    selector:
+      app: helloworld-apb
+      service: nginx
+    ports:
+      - name: web
+        port: 80
+        target_port: 80
+
+- name: create nginx route
+  openshift_v1_route:
+    name: nginx
+    namespace: '{{ namespace }}'
+    spec_port_target_port: web
+    labels:
+      app: helloworld-apb
+      service: nginx
+    to_name: nginx
+    state: present
+
+- name: create deployment config
+  openshift_v1_deployment_config:
+    name: nginx
+    namespace: '{{ namespace }}'
+    labels:
+      app: helloworld-apb
+      service: nginx
+    replicas: 1
+    selector:
+      app: helloworld-apb
+      service: nginx
+    strategy_type: Rolling
+    spec_template_metadata_labels:
+      app: helloworld-apb
+      service: nginx
+    containers:
+    - env:
+      image: gcr.io/google_containers/nginx-slim:0.8
+      image_pull_policy: IfNotPresent
+      name: nginx
+      ports:
+      - container_port: 80
+        protocol: TCP
+      resources: {}
+      security_context: {}
+    dns_policy: ClusterFirst
+    restart_policy: Always
+    termination_grace_period_seconds: 30
+  register: deployment_result

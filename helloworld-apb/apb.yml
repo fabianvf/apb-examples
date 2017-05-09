@@ -1,0 +1,14 @@
+id: f32de3bc-3225-429a-b23b-cef47ca1d25c
+name: helloworld-apb
+image: jkig/helloworld-apb
+description: Hello World with NGINX apb
+bindable: true
+async: "optional"
+parameters:
+  - name: project_name
+    description: Namespace to deploy containers to
+    default: helloworld-apb
+  - name: session_key
+    description: Key for recovering session. Will default to random UUID
+    default: test
+    required: false
