@@ -58,10 +58,16 @@
 
 - name: create etherpad route
   openshift_v1_route:
-    name: etherpad
+    name: etherpad-9001
     namespace: '{{ namespace }}'
+    spec_port_target_port: port-9001
+    labels:
+      app: etherpad-apb
+      service: etherpad
     to_name: etherpad
-    port_target_port: 9001
+    state: present
+#    to_name: etherpad
+#    port_target_port: etherpad-9001
 
 - name: create mariadb deployment config
   openshift_v1_deployment_config:
@@ -88,7 +94,7 @@
         value: '{{ root_password }}'
       - name: MYSQL_USERNAME
         value: '{{ database_user }}'
-      image: docker.io/mariadb/mariadb:latest
+      image: docker.io/ansibleapp/etherpad-ansibleapp-mariadb:latest
       image_pull_policy: IfNotPresent
       name: mariadb
       security_context: {}
@@ -147,7 +153,7 @@
       - name: SESSION_KEY
         value: '{{ session_key if session_key is defined else (99999 | random
           | to_uuid) }}'
-      image: docker.io/centos/etherpad:latest
+      image: docker.io/ansibleapp/etherpad-ansibleapp-etherpad:latest
       image_pull_policy: IfNotPresent
       name: etherpad-apb
       security_context: {}
