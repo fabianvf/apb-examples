@@ -1,5 +1,6 @@
 id: f32de3bc-3225-429a-b23b-cef47ca1d25b
-name: ansibleplaybookbundle/etherpad-apb
+name: etherpad-apb
+image: jkig/etherpad-apb
 description: Note taking web application
 bindable: true
 async: "optional"
@@ -12,6 +13,7 @@ parameters:
     default: etherpad
   - name: database_password
     description: Database Password
+    default: admin
   - name: database_name
     description: Database Name
     default: etherpad
@@ -20,8 +22,11 @@ parameters:
     default: mariadb
   - name: root_password
     description: root password for mariadb container
+    default: admin
   - name: application_password
     description: Password for etherpad-lite admin interface
+    default: admin
   - name: session_key
     description: Key for recovering session. Will default to random UUID
+    default: test
     required: false
