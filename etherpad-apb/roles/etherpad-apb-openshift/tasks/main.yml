@@ -105,7 +105,10 @@
         name: mariadb-logs
       working_dir: /
       command: 
-      - mysqld --innodb-buffer-pool-size=20M
+      - /usb/bin/entrypoint.sh
+      args:
+      - /usr/bin/dumb-init
+      - mysqld
       ports:
       - container_port: 3306
         protocol: TCP
